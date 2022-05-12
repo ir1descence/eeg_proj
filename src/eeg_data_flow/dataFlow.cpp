@@ -9,8 +9,6 @@
 //
 // Created by iridescent on 28.04.22.
 //
-
-
 void DataFlow::update(glm::vec2 d) {
     mutex.lock();
     data.push_back(d);
@@ -21,7 +19,6 @@ void DataFlow::update(glm::vec2 d) {
 void DataFlow::setRecordMode() {
     recordMode = !recordMode;
     if (recordMode) record();
-    else rThread.join();
 }
 void DataFlow::record() {
     rThread = std::thread([&]{
@@ -45,21 +42,22 @@ void DataFlow::record() {
     });
 }
 
-
-
 DataFlow::DataFlow(unsigned int pointsNum) : data(pointsNum, {0,0}) {
 }
 
 DataFlow::~DataFlow() {
     if (recordMode) rThread.join();
+    recordMode = false;
 }
 
 
 std::vector<glm::vec2> DataFlow::getData() {
+    std::lock_guard<std::mutex> guard(mutex);
     return data;
 }
 
 std::vector<double> DataFlow::getYData() {
+    std::lock_guard<std::mutex> guard(mutex);
     std::vector<double> yData;
     for (glm::vec2 point : data) {
         yData.push_back(point[1]);

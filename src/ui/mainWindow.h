@@ -12,7 +12,6 @@ public:
     static std::pair<int, int> windowSize;
     MainWindow();
 private:
-    std::mutex m;
     std::thread mThread;
     std::thread sThread;
     _<AGraphView> rawSignal;

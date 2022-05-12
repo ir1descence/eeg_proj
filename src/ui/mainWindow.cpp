@@ -28,11 +28,9 @@ MainWindow::MainWindow() : AWindow("EEG project", 600_dp, 400_dp), dataFlow(1024
         //serialPort.Read(readData);
         //float readData;
         //char buf[255];
-        //m.lock();
         fis >> readData;
         dataFlow.update({/*std::chrono::duration_cast<std::chrono::milliseconds>
                 (std::chrono::steady_clock::now() - begin).count()*/i,std::stof(readData)});
-        //m.unlock();
         i++;
         ui_thread{
             //std::cout << std::stof(readData) << std::endl;
@@ -45,13 +43,8 @@ MainWindow::MainWindow() : AWindow("EEG project", 600_dp, 400_dp), dataFlow(1024
 sThread([&]{
     fft_spectrum* f = new fft_spectrum(200);
     while (1) {
-        //serialPort.Read(readData);
-        //float readData;
-        //char buf[255];
         f->setData(&dataFlow.getYData()[0]);
         ui_thread{
-
-            //std::cout << std::stof(readData) << std::endl;
             fftSpectrum->setData(f->update());
         };
         std::this_thread::sleep_for(std::chrono::milliseconds(1000));
@@ -70,3 +63,5 @@ sThread([&]{
                             }
             );
 }
+
+
