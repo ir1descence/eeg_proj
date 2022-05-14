@@ -1,9 +1,7 @@
 #include <future>
 #include <fstream>
-#include <sstream>
 #include <iomanip>
 #include <iostream>
-#include <cstring>
 #include "dataFlow.h"
 
 //
@@ -22,6 +20,7 @@ void DataFlow::setRecordMode() {
 }
 void DataFlow::record() {
     rThread = std::thread([&]{
+        std::mutex m;
         std::ofstream file;
         std::time_t result = std::time(nullptr);
         std::stringstream sstream;
@@ -32,9 +31,9 @@ void DataFlow::record() {
         std::cout << file.is_open() << std::endl;
         while (recordMode) {
             if (dataChanged) {
-                mutex.lock();
+                m.lock();
                 file << data[data.size()-1][1] << " ";
-                mutex.unlock();
+                m.unlock();
                 dataChanged = false;
             }
         }
@@ -67,5 +66,9 @@ std::vector<double> DataFlow::getYData() {
 
 bool DataFlow::getRecordMode() {
     return recordMode;
+}
+
+unsigned int DataFlow::getDataLength() {
+    return data.size();
 }
 

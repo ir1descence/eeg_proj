@@ -20,6 +20,7 @@ public:
     void record();
     void setRecordMode();
     bool getRecordMode();
+    unsigned int getDataLength();
 private:
     std::thread rThread;
     std::mutex mutex;

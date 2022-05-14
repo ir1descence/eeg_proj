@@ -12,7 +12,7 @@
 
 class API_AUI_VIEWS AGraphView: public AView{
 public:
-    AGraphView(int pointsNum);
+    AGraphView();
     void render() override;
     void setData(std::vector<glm::vec2> data);
     void renderCoordinatesY();

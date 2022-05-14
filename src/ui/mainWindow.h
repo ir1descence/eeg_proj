@@ -18,6 +18,7 @@ private:
     _<AGraphView> fftSpectrum;
     _<AButton> recordButton;
     DataFlow dataFlow;
+    void getSpectrogram();
     //_<ALabel> test;
 
 };

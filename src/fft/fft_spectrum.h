@@ -11,14 +11,16 @@
 
 class fft_spectrum {
 public:
-    fft_spectrum(unsigned int input_size);
+    fft_spectrum(int input_size);
     ~fft_spectrum();
-    std::vector<glm::vec2> update();
+    void updateData(double * data);
+    std::vector<glm::vec2> getSpectrum();
     void setData(double * data);
+    unsigned int get_output_size();
 private:
     unsigned int input_size;
     unsigned int output_size;
-    fftw_complex* input_buffer;
+    double* input_buffer;
     fftw_complex* output_buffer;
     int flags = FFTW_ESTIMATE;
     fftw_plan plan;

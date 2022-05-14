@@ -6,10 +6,11 @@
 #include <AUI/View/AButton.h>
 #include <fstream>
 #include <eeg_data_flow/serial/SerialPort.hpp>
+#include <AUI/View/ATabView.h>
 #include "mainWindow.h"
 #include "fft/fft_spectrum.h"
 
-MainWindow::MainWindow() : AWindow("EEG project", 600_dp, 400_dp), dataFlow(1024), mThread([&] {
+MainWindow::MainWindow() : AWindow("EEG project", 600_dp, 400_dp), dataFlow(256), mThread([&] {
     //std::ifstream serialRead("/dev/ttyACM0");
     /*CppLinuxSerial::SerialPort serialPort("", CppLinuxSerial::BaudRate::B_9600,
                                               CppLinuxSerial::NumDataBits::EIGHT,
@@ -24,44 +25,61 @@ MainWindow::MainWindow() : AWindow("EEG project", 600_dp, 400_dp), dataFlow(1024
     std::string readData;
     //std::chrono::steady_clock::time_point begin = std::chrono::steady_clock::now();
     int i = 0;
+    getSpectrogram();
     while (!fis.eof()) {
         //serialPort.Read(readData);
         //float readData;
         //char buf[255];
         fis >> readData;
-        dataFlow.update({/*std::chrono::duration_cast<std::chrono::milliseconds>
-                (std::chrono::steady_clock::now() - begin).count()*/i,std::stof(readData)});
         i++;
+
         ui_thread{
             //std::cout << std::stof(readData) << std::endl;
+            dataFlow.update({/*std::chrono::duration_cast<std::chrono::milliseconds>
+                (std::chrono::steady_clock::now() - begin).count()*/i,std::stof(readData)});
             rawSignal->setData(dataFlow.getData());
+
         };
 
         std::this_thread::sleep_for(std::chrono::milliseconds(10));
     }
-}),
-sThread([&]{
-    fft_spectrum* f = new fft_spectrum(200);
-    while (1) {
-        f->setData(&dataFlow.getYData()[0]);
-        ui_thread{
-            fftSpectrum->setData(f->update());
-        };
-        std::this_thread::sleep_for(std::chrono::milliseconds(1000));
-    }
 })
 {
+    _<ATabView> tabView;
+    addView(tabView = _new<ATabView>() let {
+        it->addTab(Vertical{
+                recordButton = _new<AButton>("Record").connect(&AButton::clicked,this, [&] {
+                    dataFlow.setRecordMode();
+                    recordButton->setText(dataFlow.getRecordMode() ? "Stop recording" : "Record");
+                }),
+                rawSignal = _new<AGraphView>(),
+                Centered{_new<ALabel>("EEG spectrum")},
+                fftSpectrum = _new<AGraphView>(),
+                _new<ALabel>("Frequency ranges"),
+        } let { it->setExpanding(); }, "Recording");
+        it->setExpanding();
+        it->addTab(Vertical{
+                _new<ALabel>("Henlo")
+        } let { it->setExpanding(); }, "Spectrum");
+    });
     setContents(
-            Vertical{
-                    recordButton = _new<AButton>("Record").connect(&AButton::clicked,
-                                                                   this, [&] {
-                        dataFlow.setRecordMode();
-                        recordButton->setText(dataFlow.getRecordMode() ? "Stop recording" : "Record");
-                    }),
-                    rawSignal = _new<AGraphView>(200),
-                    fftSpectrum = _new<AGraphView>(101),
-                            }
-            );
+            Vertical {tabView}
+
+    );
+}
+
+void MainWindow::getSpectrogram() {
+    sThread = std::thread([&]{
+        fft_spectrum* f = new fft_spectrum(dataFlow.getYData().size());
+
+        while (1) {
+            f->updateData(&dataFlow.getYData()[0]);
+            ui_threadX[data = std::move(f->getSpectrum()), this]{
+                fftSpectrum->setData(data);
+            };
+            std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+        }
+    });
 }
 
 

@@ -5,16 +5,15 @@
 #include "AUI/ASS/ASS.h"
 #include "AGraphView.h"
 
-AGraphView::AGraphView(int pointsNum) :  data(pointsNum, {0,0}) {
-    this->pointsNum = pointsNum;
+AGraphView::AGraphView() : data(1, {0,0}){
     //setExpanding();
     setExpanding();
-    std::cout<<getSize()[0] << " " << getSize()[1]<<std::endl;
 
 }
 
 void AGraphView::setData(std::vector<glm::vec2> d) {
-
+    pointsNum = d.size();
+    data.erase(data.begin(), data.end());
     maxY = (*std::max_element(d.begin(), d.end(),
                               [](glm::vec2 &a, glm::vec2 &b) {
                                   return a[1] < b[1];
@@ -23,7 +22,6 @@ void AGraphView::setData(std::vector<glm::vec2> d) {
                               [](glm::vec2 &a, glm::vec2 &b) {
                                   return a[1] < b[1];
                               }))[1];
-    //std::cout << maxY << " " << minY << std::endl;
     minX = d[0][0];
     maxX = d[pointsNum-1][0];
     auto height = getSize()[1];
@@ -31,21 +29,21 @@ void AGraphView::setData(std::vector<glm::vec2> d) {
     double coef = 1;
     if (maxY != minY ) coef = height / 2 / (fabs(maxY) + fabs(minY));
     for (int i = 0; i < pointsNum; i++) {
-        data[i] = {i*weight/pointsNum, -(d[i][1] * coef) + (height/2+(maxY+minY) / 2) * coef};
+        data.push_back({i*weight/pointsNum, -(d[i][1] * coef) + (height+(maxY+minY)*coef)/2});
 
     }
-    this->delta = (height/2+(maxY+minY) / 2) * coef;
+    this->delta = (height+(maxY+minY)*coef)/2;
     redraw();
 }
 
 
 void AGraphView::render() {
-    std::cout << getSize()[0] << " " << getSize()[1] << std::endl;
     AView::render();
     //Render::rect(ASolidBrush{0x009999_rgb}, {0,0}, getSize());
     Render::line(ASolidBrush{0x0020202_rgb}, {0,0}, {getSize()[0],0});
     Render::lines(ASolidBrush{0x000000_rgb}, data);
     Render::line(ASolidBrush{0x0020202_rgb}, {0,0}, {0,getSize()[1]});
+    if (maxX == minX) return;
     renderCoordinatesX();
     renderCoordinatesY();
 }
@@ -56,17 +54,17 @@ void AGraphView::render() {
 void AGraphView::renderCoordinatesX() {
     unsigned int wight = getSize()[0];
     //10 - min number of pixels between divisions, should be calculated
-    /**/
-    std::cout << wight << std::endl;
-    unsigned int numOfDivisions = std::min(pointsNum, (int)(wight / 20));
-    std::cout << wight << std::endl;
+    /*std::min(pointsNum, (int)(wight / 20))*/
+    unsigned int numOfDivisions = (pointsNum <= wight / (maxX / 10 + 20)) ? pointsNum :
+            wight / (std::to_string(maxX).length()*2 + 50);
+    if (numOfDivisions == 0) return;
     unsigned int divisionsLength = wight / numOfDivisions;
     Render::line(ASolidBrush{0x0020202_rgb}, {0,delta}, {wight,delta});
-    for (int i = 0; i < numOfDivisions; i++) {
+    for (int i = 1; i < numOfDivisions; i++) {
         Render::line(ASolidBrush{0x0020202_rgb}, {i*divisionsLength,delta + 1},
                      {i*divisionsLength,delta - 1});
         Render::string({i*divisionsLength,delta + 3},
-                       std::to_string((int)std::round(minX + (maxX-minX)/numOfDivisions)*i));
+                       std::to_string((int)std::round(minX + i * (maxX-minX)/numOfDivisions)));
     }
 }
 
