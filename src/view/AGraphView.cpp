@@ -6,7 +6,6 @@
 #include "AGraphView.h"
 
 AGraphView::AGraphView() : data(1, {0,0}){
-    //setExpanding();
     setExpanding();
 
 }
@@ -61,8 +60,8 @@ void AGraphView::renderCoordinatesX() {
     unsigned int divisionsLength = wight / numOfDivisions;
     Render::line(ASolidBrush{0x0020202_rgb}, {0,delta}, {wight,delta});
     for (int i = 1; i < numOfDivisions; i++) {
-        Render::line(ASolidBrush{0x0020202_rgb}, {i*divisionsLength,delta + 1},
-                     {i*divisionsLength,delta - 1});
+        Render::line(ASolidBrush{0x0020202_rgb}, {i*divisionsLength,delta + 2},
+                     {i*divisionsLength,delta - 2});
         Render::string({i*divisionsLength,delta + 3},
                        std::to_string((int)std::round(minX + i * (maxX-minX)/numOfDivisions)));
     }

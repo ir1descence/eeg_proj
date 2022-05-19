@@ -18,6 +18,7 @@ public:
     void setData(double * data);
     unsigned int get_output_size();
 private:
+    void normalize();
     unsigned int input_size;
     unsigned int output_size;
     double* input_buffer;

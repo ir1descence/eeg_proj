@@ -18,6 +18,7 @@ fft_spectrum::fft_spectrum(int input_size) {
 
 void fft_spectrum::updateData(double * data) {
     input_buffer = data;
+    //normalize();
     plan = fftw_plan_dft_r2c_1d(input_size,
                                 input_buffer,
                                 output_buffer,
@@ -44,4 +45,17 @@ fft_spectrum::~fft_spectrum() {
 
 unsigned int fft_spectrum::get_output_size() {
     return output_size;
+}
+
+void fft_spectrum::normalize() {
+    int max = 0;
+    std::cout << input_size << std::endl;
+    for (int i = 0; i < input_size; i++) {
+        if (input_buffer[i] > max) {
+            max = input_buffer[i];
+        }
+    }
+    for (int i = 0; i < input_size; i++) {
+        input_buffer[i] /= max * 10;
+    }
 }

@@ -56,6 +56,7 @@ MainWindow::MainWindow() : AWindow("EEG project", 600_dp, 400_dp), dataFlow(256)
                 Centered{_new<ALabel>("EEG spectrum")},
                 fftSpectrum = _new<AGraphView>(),
                 _new<ALabel>("Frequency ranges"),
+                histogram = _new<AHistogramView>(4),
         } let { it->setExpanding(); }, "Recording");
         it->setExpanding();
         it->addTab(Vertical{
@@ -76,10 +77,15 @@ void MainWindow::getSpectrogram() {
             f->updateData(&dataFlow.getYData()[0]);
             ui_threadX[data = std::move(f->getSpectrum()), this]{
                 fftSpectrum->setData(data);
+                histogram->setData(data);
             };
             std::this_thread::sleep_for(std::chrono::milliseconds(1000));
         }
     });
+}
+MainWindow::~MainWindow() noexcept {
+    sThread.join();
+    mThread.join();
 }
 
 
