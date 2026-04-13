@@ -5,7 +5,8 @@
 #include "AUI/Platform/AWindow.h"
 #include "AUI/View/AButton.h"
 #include "view/AGraphView.h"
-#include "thread"
+#include <thread>
+#include <atomic>
 #include "view/AHistogramView.h"
 
 class MainWindow : public AWindow {
@@ -14,6 +15,7 @@ public:
     MainWindow();
     ~MainWindow();
 private:
+    std::atomic<bool> mStopThread{false};
     std::thread mThread;
     std::thread sThread;
     _<AGraphView> rawSignal;
